@@ -44,7 +44,7 @@ FUNCTION rad_lum_mass,teff,teff_err,silent=silent
      return,-1
   endif
 
-  if teff lt 3142 or teff gt 4773 then begin
+  if teff lt 3180 or teff gt 4773 then begin
      print,'Warning, temperature is outside the range of calibrators!'
      print,'Results are probably not reliable.'
   endif
@@ -80,8 +80,14 @@ FUNCTION rad_lum_mass,teff,teff_err,silent=silent
      sigma = sqrt(dy_t^2.0*teff_err^2.0 + fit_err^2.0)
      values[*,i] = [y,sigma]
   endfor
+
   ;; fundamental lower mass error limit of 10%
   if values[1,2]/values[0,2] lt 0.1 then values[1,2] = values[0,2]*0.1 ;; this should rarely execute
+  if silent eq 0 then begin
+     print,'Radius: '+string(values[0,0],format="(D6.3)")+'+/-'+string(values[1,0],format="(D6.3)")
+     print,'Luminosity: '+string(values[0,1],format="(D6.3)")+'+/-'+string(values[1,1],format="(D6.3)")
+     print,'Mass: '+string(values[0,2],format="(D6.3)")+'+/-'+string(values[1,2],format="(D6.3)")
+  endif
   return,values
 
 END
