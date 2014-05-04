@@ -19,7 +19,7 @@
 ;
 ; OUTPUT PARAMETERS: 
 ;       The function returns a 2x3 array containing:
-;       [[Radius, Radius_err],[Luminosity,Luminosity_err],[Mass,Mass_err]]
+;       [[Radius, Radius_err],[Luminosity,Luminosity_err],[Mass,Mass_err],[Density,Density_err]]
 ;       Output quantities are all in solar units
 ;
 ; OPTIONAL INPUT KEYWORD PARAMETERS:
@@ -44,20 +44,21 @@ FUNCTION rad_lum_mass,teff,teff_err,silent=silent
      return,-1
   endif
 
-  if teff lt 3180 or teff gt 4773 then begin
+  if teff lt 3220 or teff gt 4773 then begin
      print,'Warning, temperature is outside the range of calibrators!'
      print,'Results are probably not reliable.'
   endif
 
-  readcol,'~/Dropbox/Radii/Relations.txt',/silent,type,a,b,c,d,rchisq,sig,fit_err2,format="a,d,d,d,d,d,d,d"
-  readcol,'~/Dropbox/Radii/T_R.dat',newx,t_r_err,/silent
-  readcol,'~/Dropbox/Radii/T_L.dat',newx,t_l_err,/silent
-  readcol,'~/Dropbox/Radii/T_M.dat',newx,t_m_err,/silent
+  readcol,'Relations.txt',/silent,type,a,b,c,d,rchisq,sig,fit_err2,format="a,d,d,d,d,d,d,d"
+  readcol,'T_R.dat',newx,t_r_err,/silent
+  readcol,'T_L.dat',newx,t_l_err,/silent
+  readcol,'T_M.dat',newx,t_m_err,/silent
+  readcol,'T_P.dat',newx,t_p_err,/silent
 
-  values = dblarr(2,3) 
+  values = dblarr(2,4) 
   newx = generatearray(3000,5000,100)
   ;; y is a generic quantity (could be mass, radius, or luminosity)
-  for i = 0,n_elements(a)-2 do begin ;; -2 because the last relation is not needed for this program
+  for i = 0,n_elements(a)-1 do begin 
      y = a[i]+b[i]*teff+c[i]*teff^2.0+d[i]*teff^3.0
      ;; error analysis: the error in y is sqrt((dy/dT)^2.0*\sigmaT^2.0
      ;; + \sigma_Relation^2.0) 
@@ -76,10 +77,14 @@ FUNCTION rad_lum_mass,teff,teff_err,silent=silent
         2: begin ;; Teff-Mass
            fit_err = interpol(t_m_err,newx,teff)
         end
+        3: begin ;; teff-P
+           fit_err = interpol(t_p_err,newx,teff)
+        end
      endcase
      sigma = sqrt(dy_t^2.0*teff_err^2.0 + fit_err^2.0)
      values[*,i] = [y,sigma]
   endfor
+  values[0,3] = values[0,2]/(values[0,0]^3.0)
 
   ;; fundamental lower mass error limit of 10%
   if values[1,2]/values[0,2] lt 0.1 then values[1,2] = values[0,2]*0.1 ;; this should rarely execute
@@ -87,6 +92,7 @@ FUNCTION rad_lum_mass,teff,teff_err,silent=silent
      print,'Radius: '+string(values[0,0],format="(D6.3)")+'+/-'+string(values[1,0],format="(D6.3)")
      print,'Luminosity: '+string(values[0,1],format="(D6.3)")+'+/-'+string(values[1,1],format="(D6.3)")
      print,'Mass: '+string(values[0,2],format="(D6.3)")+'+/-'+string(values[1,2],format="(D6.3)")
+     print,'Density: '+string(values[0,3],format="(D6.2)")+'+/-'+string(values[1,3],format="(D6.2)")
   endif
   return,values
 
