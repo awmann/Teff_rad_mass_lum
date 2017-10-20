@@ -14,6 +14,7 @@ See the individual code for syntax/instructions. Bolometric relation formulae ar
 
 All programs take errors on the given values as well, if no error is provided it assumes the error is 0 and only returns errors based on the calibration error. 
 
+
 Important: this assumes V magnitude is on the Johnson system, I is on Cousins, rz are on SDSS, and JHK are on Twomass system. Keep in mind that many sources of photometry claim to be on these systems but are not, or at least have larger errors than purported.\
 For example, here are APASS gri magnitudes (which are presumably the same as SDSS) compared to the synthetic magnitudes used for our calibrations as a function of V-J color. As you can see, APASS r does appear to match our system, 
 but the errors are underestimated (APASS notes this in their documentation as many times they have too few measurements for an accurate error estimate). 
